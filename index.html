@@ -1,32 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <section id="container">
-      <articles id="logo">
-        <div><h1>Hunter vs. Zombies</h1></div>
-      </articles>
-
-      <article>
-        <div id="instruction"><h2></h2></div>
-        <div><canvas id="canvas" width="640" height="640"></canvas></div>
-        <div id="game-mechanics"></div>
-      </article>
-
-      <article>
-        <div id="score"></div>
-        <div id="start-button"></div>
-      </article>
-    </section>
-    <script src="main.js"></script>
-  </body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -43,11 +14,28 @@
   </head>
   <body>
     <section id="container">
-      <article id="header"><div id="logo">This is the logo.</div></article>
+      <article id="header"><div id="logo">Hunter Z</div></article>
       <article id="main">
-        <div id="story">Once upon a time in my life...</div>
+        <div id="story">
+          Welcome to Hell, where the best drink you could get is a natural
+          Pulque!...<br />
+          Enough of me, in order to survive the flaming depths of Hell, you need
+          to be able to "kill" more Zombies than your opponent.<br />
+          Good luck!
+        </div>
+
         <canvas id="canvas" width="700" height="500"></canvas>
-        <div id="instructions">The objective of this game is...</div>
+        <div id="instructions">
+          <img
+            src="https://media.indiedb.com/images/games/1/68/67804/Arrow_keys_transparent.png"
+            alt="keys"
+          />
+          <img
+            id="mouse"
+            src="http://pixelartmaker.com/art/ef03b245e577504.png"
+          />
+          <h2 id="whattodo">Use the keys to move, and the Mouse to shoot</h2>
+        </div>
       </article>
       <article id="footer">
         <div id="info">Score: 0</div>

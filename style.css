@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css?family=Permanent+Marker");
+
 canvas {
   border: 1px solid;
   display: flex;
@@ -10,4 +12,41 @@ canvas {
   display: flex;
   justify-content: center;
   /* text-align: center; */
+}
+section > article {
+  font-family: "permanent Marker";
+}
+#header {
+  font-size: 300%;
+  background-color: #551203;
+}
+#main {
+  background-image: url("images/1539299802333.gif");
+  background-size: 800px 600px;
+  background-repeat: repeat;
+  color: white;
+}
+#story {
+  font-size: 120%;
+  /* padding-top: px; */
+  display: flex;
+  justify-content: flex-start;
+  line-height: 220%;
+}
+#instruction {
+  /* padding-left: 200px; */
+  position: absolute;
+  left: 200px;
+}
+#whattodo {
+  position: absolute;
+  left: 550px;
+  bottom: 15px;
+}
+#mouse {
+  position: absolute;
+
+  height: 120px;
+  width: 130px;
+  right: 80px;
 }

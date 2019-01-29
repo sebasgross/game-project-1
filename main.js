@@ -13,6 +13,9 @@ let frames = 0;
 let bullets = [];
 let zombiesArray = [];
 let maxZombies = 20;
+let radianes;
+let centroX = 2.5;
+let centroY = 2.5;
 //clases
 class Board {
   constructor() {
@@ -24,16 +27,16 @@ class Board {
     this.image.src = images.bg1;
     this.draw = function() {
       // activar si quiero mover el background
-      if (this.y < -canvas.height) this.y = 0;
-      this.y--;
+      // if (this.y < -canvas.height) this.y = 0;
+      // this.y--;
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-      ctx.drawImage(
-        this.image,
-        this.x,
-        this.y + this.height,
-        this.width,
-        this.height
-      );
+      // ctx.drawImage(
+      //   this.image,
+      //   this.x,
+      //   this.y + this.height,
+      //   this.width,
+      //   this.height
+      // );
     };
     this.image.onload = this.draw.bind(this);
   }
@@ -83,8 +86,7 @@ class Weapon {
       (this.y = hunter.y + 45),
       (this.width = 34),
       (this.height = 25),
-      (this.bullets = {});
-    (this.image = new Image()),
+      (this.image = new Image()),
       (this.image.src = images.crossbow),
       (this.draw = function() {
         // ctx.save();
@@ -92,26 +94,27 @@ class Weapon {
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
         // ctx.restore();
       });
-    // rhis.shoot= function (){
-    //   let maxArrow = 50;
-    //   let arrow = [num];
-    //   arrow.length < maxArrow) {
-    //     arrow.splice(num);
-    //     return true;
-    //   }
-    // this.shoot = function() {
-    //   addEventListener("click", e => {
-    //     var angle = Math.atan2(player.x - e.pageX, player.y - e.pageY);
-    //     this.bullets.push(
-    //       bullet({
-    //         radian: angle,
-    //         speed: 6,
-    //         x: player.x, //<-- Here
-    //         y: player.y //<-- And Here
-    //       })
-    //     );
-    //   });
+
     this.image.onload = this.draw.bind(this);
+  }
+}
+class Bullet {
+  constructor(radianes) {
+    (this.x = crossbow.x),
+      (this.y = crossbow.y),
+      (this.width = 2),
+      (this.height = 2),
+      (this.speed = 3),
+      (this.radianes = radianes),
+      (this.draw = function() {
+        ctx.save();
+        ctx.fillStyle = "red";
+        this.x += Math.cos(this.radianes) * this.speed;
+        this.y += Math.sin(this.radianes) * this.speed;
+
+        ctx.fillRect(this.y, this.x, this.width, this.height);
+        ctx.restore();
+      });
   }
 }
 
@@ -120,6 +123,7 @@ let board = new Board();
 let hunter = new Hunter();
 let crossbow = new Weapon();
 let zombie1 = new Zombie();
+let bullet = new Bullet();
 
 //main function
 function start() {
@@ -132,12 +136,28 @@ function update() {
   hunter.draw();
   crossbow.draw();
   zombie1.draw();
-  // getMousePos();
+
   generateZombies();
   drawZombies();
+  setInterval(() => {
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    bullets.map(bala => {
+      bala.draw();
+    });
+  }, 1000 / 60);
 }
+
 function gameover() {}
 //aux function
+// function ajusta(xx, yy) {
+//   var pos = canvas.getBoundingClientRect();
+//   var x = xx - pos.left;
+//   var y = yy - pos.top;
+//   return { x, y };
+// }
+
+// console.log(xVel);
+
 function generateZombies() {
   if (frames % 50 == 0 && zombiesArray.length < maxZombies) {
     let location = Math.floor(Math.random() * 620) + 30;
@@ -150,17 +170,20 @@ function drawZombies() {
     zombie.draw();
   });
 }
-function getCordinates(e) {
-  let xCord = e.offsetX - 39;
-  let yCord = e.offsetY - 53;
-}
-// document.addEventListener("click", shootCrossbow);
-// if()
-// }
-// console.log(drawZombies(zombie1));
 
 //listeners
-
+addEventListener("click", e => {
+  // let pos = (e.offsetX - 39, e.offsetY - 53);
+  let x = e.offsetX - 39;
+  let y = e.offsetY - 53;
+  let dx = x;
+  let dy = y;
+  let radianes = Math.atan2(dy, dx);
+  bullets.push(
+    new Bullet(Math.cos(radianes) * 35, Math.sin(radianes) * 35, radianes)
+  );
+  console.log(bullets);
+});
 addEventListener("keydown", e => {
   switch (e.keyCode) {
     case 83: //s
