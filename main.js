@@ -9,13 +9,26 @@ let images = {
   crossbow: "images/pa_crossbow_x4.png",
   zombie: "images/zombie-realistic.png"
 };
+
+// music1.loop = true;
+// music1.currentTime = 0;
 let frames = 0;
 let bullets = [];
 let zombiesArray = [];
 let maxZombies = 20;
+
 let radianes;
-let centroX = 2.5;
-let centroY = 2.5;
+
+//new
+var deltaX = 0;
+var deltaY = 0;
+var rotation = 0;
+var xtarget = 0;
+var ytarget = 0;
+var theBullets = [];
+
+//final de nuevo
+
 //clases
 class Board {
   constructor() {
@@ -28,7 +41,8 @@ class Board {
     this.draw = function() {
       // activar si quiero mover el background
       // if (this.y < -canvas.height) this.y = 0;
-      // this.y--;
+      // // this.y--;
+
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
       // ctx.drawImage(
       //   this.image,
@@ -99,21 +113,38 @@ class Weapon {
   }
 }
 class Bullet {
-  constructor(radianes) {
-    (this.x = crossbow.x),
-      (this.y = crossbow.y),
+  constructor(x, y, radianes) {
+    (this.x = x),
+      (this.y = y),
       (this.width = 2),
       (this.height = 2),
       (this.speed = 3),
       (this.radianes = radianes),
       (this.draw = function() {
-        ctx.save();
-        ctx.fillStyle = "red";
-        this.x += Math.cos(this.radianes) * this.speed;
-        this.y += Math.sin(this.radianes) * this.speed;
+        function bulletsMove() {
+          theBullets.forEach(function(i, j) {
+            i.x += i.xtarget * i.speed;
+            i.y += i.ytarget * i.speed;
+          });
+        }
+        function bulletsDraw() {
+          theBullets.forEach(function(i, j) {
+            c.beginPath();
+            c.save();
+            c.fillStyle = "black";
+            c.rect(i.x, i.y, i.w, i.h);
+            c.fill();
+          });
+        }
+        //start
+        // ctx.save();
+        // ctx.fillStyle = "red";
+        // this.x += Math.cos(this.radianes) * this.speed;
+        // this.y += Math.sin(this.radianes) * this.speed;
 
-        ctx.fillRect(this.y, this.x, this.width, this.height);
-        ctx.restore();
+        // ctx.fillRect(this.y, this.x, this.width, this.height);
+        // ctx.restore();
+        //finish
       });
   }
 }
@@ -123,11 +154,16 @@ let board = new Board();
 let hunter = new Hunter();
 let crossbow = new Weapon();
 let zombie1 = new Zombie();
+let music1 = new Audio();
 let bullet = new Bullet();
+music1.src =
+  "http://66.90.93.122/ost/call-of-duty-black-ops-zombies-mob-of-the-dead/mqxqyzrz/01.%20Damned.mp3";
+//let bullet = new Bullet();
 
 //main function
 function start() {
-  interval = setInterval(update, 1000 / 60);
+  interval = setInterval(update, 40);
+  music1.play();
 }
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -136,18 +172,54 @@ function update() {
   hunter.draw();
   crossbow.draw();
   zombie1.draw();
-
+  bullet.bulletsMove();
+  bullet.bulletsDraw();
   generateZombies();
   drawZombies();
-  setInterval(() => {
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    bullets.map(bala => {
-      bala.draw();
+}
+//start
+//   setInterval(() => {
+//     // ctx.clearRect(0, 0, canvas.width, canvas.height);
+//     bullets.map(bala => {
+//       bala.draw();
+//     });
+//   }, 1000 / 60);
+// }
+//finish
+function gameover() {}
+function mouseMove(e) {
+  if (e.offsetX) {
+    mouseX = e.offsetX;
+    mouseY = e.offsetY;
+  } else if (e.layerX) {
+    mouseX = e.layerX;
+    mouseY = e.layerY;
+  }
+}
+function createBullet(mouseX, mouseY, shooterX, shooterY) {
+  if (start()) {
+    deltaX = targetX - shooterX;
+    deltaY = targetY - shooterY;
+    rotation = Math.atan2(deltaY, deltaX);
+    xtarget = Math.cos(rotation);
+    ytarget = Math.sin(rotation);
+
+    theBullets.push({
+      active: true,
+      x: shooterX,
+      y: shooterY,
+      speed: 10,
+      xtarget: xtarget,
+      ytarget: ytarget,
+      w: 3,
+      h: 3,
+      color: "black",
+      angle: rotation
     });
-  }, 1000 / 60);
+  }
 }
 
-function gameover() {}
+//start
 //aux function
 // function ajusta(xx, yy) {
 //   var pos = canvas.getBoundingClientRect();
@@ -155,7 +227,7 @@ function gameover() {}
 //   var y = yy - pos.top;
 //   return { x, y };
 // }
-
+//finish
 // console.log(xVel);
 
 function generateZombies() {
@@ -172,18 +244,42 @@ function drawZombies() {
 }
 
 //listeners
+addEventListener("mousemove", mouseMove, true);
 addEventListener("click", e => {
-  // let pos = (e.offsetX - 39, e.offsetY - 53);
-  let x = e.offsetX - 39;
-  let y = e.offsetY - 53;
-  let dx = x;
-  let dy = y;
-  let radianes = Math.atan2(dy, dx);
-  bullets.push(
-    new Bullet(Math.cos(radianes) * 35, Math.sin(radianes) * 35, radianes)
-  );
-  console.log(bullets);
+  createBullet(mouseX, mouseY, hunter.x, hunter.y);
 });
+//start
+// let pos = ajusta(e.offsetX - 39, e.offsetY - 53);
+// let x = pos.x;
+// let y = pos.y;
+
+// // let x = e.clientX - 39;
+// // let y = e.clientY - 53;
+// let dx = x - hunter.x;
+// let dy = y - hunter.y;
+
+// let radianes = Math.atan2(dy, dx);
+
+// var bullet = new Bullet(x, y, radianes);
+// bullet.draw();
+//finish
+/*
+  function generateBullet(x, y, radianes) {
+    console.log(radianes);
+    var bullet = new Bullet(x, y, radianes);
+    bullets.push(bullet);
+    console.log(bullets);
+    drawBullets(bullet);
+  }
+
+  function drawBullets(bullets) {
+    bullet.draw();
+  }
+  generateBullet(x, y, radianes);
+*/
+
+// console.log(dx + " " + dy);
+// console.log(e.layerX + " " + e.layerY);
 addEventListener("keydown", e => {
   switch (e.keyCode) {
     case 83: //s
@@ -208,6 +304,10 @@ addEventListener("keydown", e => {
   }
 });
 
+document.getElementById("startButton").addEventListener("click", function() {
+  start();
+});
+
 // $(document).ready(function (e) {
 
 //   $(canvas).click(function (e) { //Default mouse Position
@@ -216,4 +316,4 @@ addEventListener("keydown", e => {
 
 /* This is to get click cordinates to shoot the zombies */
 
-start();
+// start();
