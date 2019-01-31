@@ -379,6 +379,13 @@ class Zombie {
     this.y = 10;
     this.width = 60;
     this.height = 90;
+    this.rectangleZombie = new Rectangle(
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
     // this.velX = 0;
     // this.velY = 0;
     this.image = new Image();
@@ -419,6 +426,7 @@ class Bullet {
       (this.y = crossbow.y),
       (this.width = 6),
       (this.height = 18);
+    this.rectangleBull = new Rectangle(this.x, this.y, this.width, this.height);
 
     this.image = new Image();
     this.image.src = images.laser;

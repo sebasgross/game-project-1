@@ -3,20 +3,24 @@ let ctx = canvas.getContext("2d");
 //globals
 let interval;
 let images = {
-  bg1: "images/possibleBg.jpg",
+  bg1: "images/bgbrown2.png",
   // hunter: "images/hunter.png",
   // hunterleft: "images/30095140_hunterFlipped-left.png",
   hunterBaby: "images/characterbaby.png",
   crossbow: "images/pa_crossbow_x4.png",
   zombie: "images/zombie-realistic.png",
-  laser: "images/shot.png"
+  laser: "images/shot.png",
+  laserSideways: "images/shotflippedhorizontal.png",
+  startmenu: "images/zombiesmaxres.png"
 };
 let frames = 0;
-let bullets = [];
+let bullets = new Array();
 let zombiesArray = [];
 let maxZombies = 20;
+let score = 0;
 // let radianes;
 //clases
+
 class Board {
   constructor() {
     this.x = 0;
@@ -27,28 +31,29 @@ class Board {
     this.image.src = images.bg1;
     this.draw = function() {
       // activar si quiero mover el background
-      // if (this.y < -canvas.height) this.y = 0;
-      // this.y--;
+      if (this.y < -canvas.height) this.y = 0;
+      this.y--;
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-      // ctx.drawImage(
-      //   this.image,
-      //   this.x,
-      //   this.y + this.height,
-      //   this.width,
-      //   this.height
-      // );
+      ctx.drawImage(
+        this.image,
+        this.x,
+        this.y + this.height,
+        this.width,
+        this.height
+      );
     };
-    this.image.onload = this.draw.bind(this);
   }
 }
 class Hunter {
   constructor() {
     this.x = 328;
     this.y = 248;
-    this.width = 50;
-    this.height = 68;
+    this.width = 60;
+    this.height = 70;
+    this.move = true;
     this.image = new Image();
     this.image.src = images.hunterBaby;
+
     // this.angle = 0;
     this.direction = "S";
     this.draw = function() {
@@ -113,21 +118,23 @@ class Zombie {
   constructor(x) {
     this.x = x;
     this.y = 10;
-    this.width = 60;
-    this.height = 90;
+    this.width = 70;
+    this.height = 80;
+
     // this.velX = 0;
     // this.velY = 0;
     this.image = new Image();
     this.image.src = images.zombie;
     this.draw = function() {
       this.y += 0.5;
-      if (this.x < board.width / 2) {
-        this.x += 0.05;
-      } else {
-        this.x -= 0.05;
-      }
+      // if (this.x < board.width / 2) {
+      //   this.x += 0.05;
+      // } else {
+      //   this.x -= 0.05;
+      // }
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     };
+
     this.image.onload = this.draw.bind(this);
   }
 }
@@ -145,7 +152,6 @@ class Weapon {
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
         // ctx.restore();
       });
-    this.image.onload = this.draw.bind(this);
   }
 }
 
@@ -156,8 +162,13 @@ class Bullet {
     this.image.src = images.laser;
 
     this.draw = function() {
+      if (hunter.direction == "A" || hunter.direction == "D") {
+        this.width = 18;
+        this.height = 6;
+        this.image.src = images.laserSideways;
+      }
+
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-      this.x += 10;
     };
   }
 }
@@ -168,6 +179,7 @@ let hunter = new Hunter();
 let crossbow = new Weapon();
 let zombie1 = new Zombie();
 let bullet = new Bullet();
+// let startmenu = new StartMenu();
 //main function
 function start() {
   if (interval) return;
@@ -180,21 +192,45 @@ function update() {
   hunter.draw();
   crossbow.draw();
   zombie1.draw();
-  // bullet.draw();
-  // generateBullet();
-  // drawBullet();
+
   drawBullet();
+  deleteBullet();
+
   generateZombies();
   drawZombies();
+  canMove();
+  isTouching();
+  // checkCollition2();
+  // checkCollition();
   //new bullet dinamic
 
   // console.log(bullets);
 }
-function gameover() {}
+function gameover() {
+  clearInterval(interval);
+}
+function startMenu() {
+  this.x = 0;
+  this.y = 0;
+  this.width = canvas.width;
+  this.height = canvas.height;
+  this.image = new Image();
+  this.image.src = images.startmenu;
+  this.draw = function() {
+    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 
+    ctx.font = "36px 'Permanent Marker'";
+    ctx.fillStyle = "#551203";
+    ctx.fillText("Baby Ruth", 270, 50);
+    ctx.font = "45px 'Permanent Marker'";
+    ctx.lineWidth = 2.5;
+    ctx.strokeText("Click START button", 100, 150);
+  };
+  this.image.onload = this.draw.bind(this);
+}
 //aux functions
 function generateZombies() {
-  if (frames % 50 == 0 && zombiesArray.length < maxZombies) {
+  if (frames % 60 == 0 && zombiesArray.length < maxZombies) {
     let location = Math.floor(Math.random() * 620) + 30;
     let aZombie = new Zombie(location);
     zombiesArray.push(aZombie);
@@ -208,20 +244,101 @@ function drawZombies() {
 function drawBullet() {
   bullets.forEach(bullet => {
     if (hunter.direction === "S") {
-      bullet.y += 30;
+      bullet.y += 100;
       bullet.draw();
     } else if (hunter.direction === "D") {
-      bullet.x += 30;
+      bullet.x += 100;
       bullet.draw();
     } else if (hunter.direction === "A") {
-      bullet.x -= 30;
+      bullet.x -= 100;
       bullet.draw();
     } else if (hunter.direction === "W") {
-      bullet.y -= 30;
+      bullet.y -= 100;
       bullet.draw();
     }
   });
 }
+// function checkCollit() {
+//   bullets.forEach(bullet => {
+
+//   });
+// }
+function deleteBullet() {
+  bullets.forEach(bullet => {
+    if (
+      bullet.x < canvas.width - 700 ||
+      bullet.x > canvas.width + 200 ||
+      bullet.y < canvas.height - 500 ||
+      bullet.y > canvas.height + 150
+    ) {
+      bullets.shift(bullet);
+    }
+  });
+}
+console.log(zombiesArray);
+console.log(bullets);
+function canMove() {
+  if (hunter.x > canvas.width - 20) {
+    hunter.x -= 20;
+    crossbow.x -= 20;
+  } else if (hunter.x < -20) {
+    hunter.x += 20;
+    crossbow.x += 20;
+  } else if (hunter.y > canvas.height - 20) {
+    hunter.y -= 20;
+    crossbow.y -= 20;
+  } else if (hunter.y < -30) {
+    hunter.y += 20;
+    crossbow.y += 20;
+  }
+}
+// function checkCollition() {
+//   zombiesArray.forEach(function(leZombie) {
+//     if (isTouching(leZombie)) zombiesArray.splice();
+//   });
+// }
+
+function isTouching() {
+  bullets.forEach(theBullet => {
+    zombiesArray.forEach(leZombie => {
+      if (
+        theBullet.x < leZombie.x + leZombie.width &&
+        theBullet.x + theBullet.width > leZombie.x &&
+        theBullet.y < leZombie.y + leZombie.height &&
+        theBullet.y + theBullet.height > leZombie.y
+      )
+        zombiesArray.shift(leZombie);
+    });
+  });
+}
+function drawScore() {
+  if (isTouching(leZombie)) {
+    score += 1;
+  }
+}
+console.log(score);
+
+// function checkColliti() {
+//   zombiesArray.forEach(function(zombie1) {
+//     if (
+//       bullet.x + bullet.width > zombie1.x &&
+//       bullet.x < zombie1.x + zombie1.width &&
+//       bullet.y + bullet.height > zombie1.y &&
+//       bullet.y < zombie1.y + zombie1.height
+//     ) {
+//       console.log("theres collision");
+//     }
+//   });
+// }
+
+//   hunter.x < canvas.width - 500 ){
+
+//   }
+//   hunter.y > canvas.height + 100 ||
+//   hunter.y < canvas.height - 800
+// ) {
+//   hunter.move = false;
+
 // function moveUp() {
 //   ctx.save();
 //   setInterval(() => {
@@ -233,41 +350,45 @@ function drawBullet() {
 //listeners
 
 addEventListener("keydown", e => {
-  switch (e.keyCode) {
-    case 83: //s
-      hunter.direction = "S";
-      hunter.y += 15;
-      crossbow.y += 15;
-      //   console.log(e.keyCode);
-      break;
-    case 87: //w
-      hunter.direction = "W";
-      hunter.y -= 15;
-      crossbow.y -= 15;
-      break;
-    case 68: //d
-      hunter.direction = "D";
-      hunter.x += 15;
-      crossbow.x += 15;
+  if (bullets.length === 0) {
+    switch (e.keyCode) {
+      case 83: //s
+        hunter.direction = "S";
+        hunter.y += 15;
+        crossbow.y += 15;
+        //   console.log(e.keyCode);
+        break;
+      case 87: //w
+        hunter.direction = "W";
+        hunter.y -= 15;
+        crossbow.y -= 15;
+        break;
+      case 68: //d
+        // bullet.image.src = images.laserSideways;
+        hunter.direction = "D";
+        hunter.x += 15;
+        crossbow.x += 15;
 
-      break;
-    case 65: //a
-      hunter.direction = "A";
-      hunter.x -= 15;
-      crossbow.x -= 15;
-      break;
-    case 32:
-      bullets.push(new Bullet(hunter.x, hunter.y));
-      break;
+        break;
+      case 65: //a
+        // bullet.image.src = images.laserSideways;
+        hunter.direction = "A";
+        hunter.x -= 15;
+        crossbow.x -= 15;
+        break;
+      case 32:
+        bullets.push(new Bullet(hunter.x, hunter.y));
+        break;
+    }
+    // hunter.x = hunter.x.clamp(500, canvas.width - hunter.width);
   }
-  // hunter.x = hunter.x.clamp(500, canvas.width - hunter.width);
 });
-
 // $(document).ready(function (e) {
 //   $(canvas).click(function (e) { //Default mouse Position
 //       alert(e.pageX + ' , ' + e.pageY);
 // //   addEventListener("click", e => {
-/* This is to get click cordinates to shoot the zombies */
-document.getElementById("startButton").addEventListener("click", function() {
+/* bullet is to get click cordinates to shoot the zombies */
+document.getElementById("startbutton").addEventListener("click", function() {
   start();
 });
+startMenu();
