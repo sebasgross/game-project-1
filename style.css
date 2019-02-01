@@ -30,11 +30,12 @@ section > article {
   color: white;
 }
 #story {
-  font-size: 120%;
+  font-size: 150%;
   /* padding-top: px; */
   display: flex;
   justify-content: flex-start;
   line-height: 220%;
+  padding-left: 40px;
 }
 #instruction {
   /* padding-left: 200px; */
@@ -61,4 +62,8 @@ section > article {
   left: 710px;
   height: 80px;
   width: 260px;
+}
+#lastp {
+  text-align: center;
+  font-size: 180%;
 }

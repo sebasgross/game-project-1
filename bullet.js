@@ -2,6 +2,18 @@ let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 //globals
 let interval;
+let chewbacaDied = new Audio();
+chewbacaDied.src = "http://soundbible.com/grab.php?id=307&type=mp3";
+let laser = new Audio();
+laser.src = "http://soundbible.com/grab.php?id=1770&type=mp3";
+let bgmusic = new Audio();
+bgmusic.src =
+  "http://66.90.93.122/ost/killzone-mercenary/mlgosokk/01%20The%20Devastation%20Of%20Vekta.mp3";
+let gameOverMusic = new Audio();
+gameOverMusic.src =
+  "http://66.90.93.122/ost/super-mario-bros/ywaefvsa/18%20-%20Game%20Over%20%28alternate%29.mp3";
+let loseHealth = new Audio();
+loseHealth.src = "music/15 - 1-Down-[AudioTrimmer.com].mp3";
 let images = {
   bg1: "images/bgbrown2.png",
   // hunter: "images/hunter.png",
@@ -11,13 +23,17 @@ let images = {
   zombie: "images/zombie-realistic.png",
   laser: "images/shot.png",
   laserSideways: "images/shotflippedhorizontal.png",
-  startmenu: "images/zombiesmaxres.png"
+  startmenu: "images/zombiesmaxres.png",
+  hearts: "images/heartsprite.png"
 };
 let frames = 0;
 let bullets = new Array();
 let zombiesArray = [];
+let zombieKilled = [];
+
 let maxZombies = 20;
 let score = 0;
+// let hunterHealth = 100;
 // let radianes;
 //clases
 
@@ -51,6 +67,7 @@ class Hunter {
     this.width = 60;
     this.height = 70;
     this.move = true;
+    this.health = 300;
     this.image = new Image();
     this.image.src = images.hunterBaby;
 
@@ -126,12 +143,12 @@ class Zombie {
     this.image = new Image();
     this.image.src = images.zombie;
     this.draw = function() {
-      this.y += 0.5;
-      // if (this.x < board.width / 2) {
-      //   this.x += 0.05;
-      // } else {
-      //   this.x -= 0.05;
-      // }
+      this.y += 1.5;
+      if (this.x < board.width / 2) {
+        this.x += 0.05;
+      } else {
+        this.x -= 0.05;
+      }
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     };
 
@@ -181,10 +198,6 @@ let zombie1 = new Zombie();
 let bullet = new Bullet();
 // let startmenu = new StartMenu();
 //main function
-function start() {
-  if (interval) return;
-  interval = setInterval(update, 50);
-}
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   frames++;
@@ -198,16 +211,29 @@ function update() {
 
   generateZombies();
   drawZombies();
+
   canMove();
   isTouching();
-  // checkCollition2();
-  // checkCollition();
-  //new bullet dinamic
-
-  // console.log(bullets);
+  hunterTouched();
+  drawScore();
+  // sound();
+  //images
+  heartDisplay();
 }
+function start() {
+  if (interval) return;
+  interval = setInterval(update, 50);
+  bgmusic.play();
+}
+
 function gameover() {
   clearInterval(interval);
+  bgmusic.pause();
+  gameOverMusic.play();
+  ctx.font = "40px 'Permanent Marker";
+  ctx.fillStyle = "red";
+  ctx.fillText("GAME OVER", 220, 200);
+  ctx.fillText("Press Enter to restart", 140, 350);
 }
 function startMenu() {
   this.x = 0;
@@ -224,13 +250,72 @@ function startMenu() {
     ctx.fillText("Baby Ruth", 270, 50);
     ctx.font = "45px 'Permanent Marker'";
     ctx.lineWidth = 2.5;
-    ctx.strokeText("Click START button", 100, 150);
+    ctx.strokeText("Click START button", 130, 150);
   };
   this.image.onload = this.draw.bind(this);
 }
+
+//
 //aux functions
+function heartDisplay() {
+  this.x = 530;
+  this.y = 10;
+  this.width = 150;
+  this.height = 50;
+  this.image = new Image();
+  this.image.src = images.hunterBaby;
+  this.draw = function() {
+    if (hunter.health <= 300 && hunter.health > 200) {
+      loseHealth.play();
+
+      ctx.drawImage(
+        this.image,
+        0,
+        0,
+        96,
+        31.5,
+        this.x,
+        this.y,
+        150,
+        this.height
+      );
+    } else if (hunter.health <= 200 && hunter.health > 100) {
+      loseHealth.play();
+
+      ctx.drawImage(
+        this.image,
+        0,
+        0,
+        64,
+        31.5,
+        this.x,
+        this.y,
+        100,
+        this.height
+      );
+    } else if (hunter.health <= 100 && hunter.health > 0) {
+      loseHealth.play();
+
+      ctx.drawImage(
+        this.image,
+        0,
+        0,
+        32,
+        31.5,
+        this.x,
+        this.y,
+        50,
+        this.height
+      );
+    } else if (hunter.health <= 0) {
+      ctx.drawImage(this.image, 0, 0, 0, 0, this.x, this.y, 0, this.height);
+      gameover();
+    }
+  };
+  this.image.onload = this.draw.bind(this);
+}
 function generateZombies() {
-  if (frames % 60 == 0 && zombiesArray.length < maxZombies) {
+  if (frames % 40 == 0 && zombiesArray.length < maxZombies) {
     let location = Math.floor(Math.random() * 620) + 30;
     let aZombie = new Zombie(location);
     zombiesArray.push(aZombie);
@@ -256,12 +341,16 @@ function drawBullet() {
       bullet.y -= 100;
       bullet.draw();
     }
+    laser.playbackRate = 4;
+    laser.play();
   });
 }
-// function checkCollit() {
-//   bullets.forEach(bullet => {
+// function sound() {
+//   if (drawBullet()) {
+//     laser.playbackRate = 2.0;
 
-//   });
+//     laser.play();
+//   }
 // }
 function deleteBullet() {
   bullets.forEach(bullet => {
@@ -275,8 +364,6 @@ function deleteBullet() {
     }
   });
 }
-console.log(zombiesArray);
-console.log(bullets);
 function canMove() {
   if (hunter.x > canvas.width - 20) {
     hunter.x -= 20;
@@ -292,12 +379,21 @@ function canMove() {
     crossbow.y += 20;
   }
 }
-// function checkCollition() {
-//   zombiesArray.forEach(function(leZombie) {
-//     if (isTouching(leZombie)) zombiesArray.splice();
-//   });
-// }
 
+function hunterTouched() {
+  zombiesArray.forEach(leZombie => {
+    if (
+      hunter.x < leZombie.x + leZombie.width &&
+      hunter.x + hunter.width > leZombie.x &&
+      hunter.y < leZombie.y + leZombie.height &&
+      hunter.y + hunter.height > leZombie.y
+    ) {
+      loseHealth.play();
+
+      hunter.health -= 2;
+    }
+  });
+}
 function isTouching() {
   bullets.forEach(theBullet => {
     zombiesArray.forEach(leZombie => {
@@ -308,46 +404,20 @@ function isTouching() {
         theBullet.y + theBullet.height > leZombie.y
       )
         zombiesArray.shift(leZombie);
+      zombieKilled.push(leZombie);
+      chewbacaDied.playbackRate = 2;
+      chewbacaDied.play();
     });
   });
 }
 function drawScore() {
-  if (isTouching(leZombie)) {
-    score += 1;
-  }
+  ctx.fillStyle = "yellow";
+  ctx.font = "30px Arial ";
+  ctx.fillText(score, 25, 40, 15, 15);
 }
-console.log(score);
-
-// function checkColliti() {
-//   zombiesArray.forEach(function(zombie1) {
-//     if (
-//       bullet.x + bullet.width > zombie1.x &&
-//       bullet.x < zombie1.x + zombie1.width &&
-//       bullet.y + bullet.height > zombie1.y &&
-//       bullet.y < zombie1.y + zombie1.height
-//     ) {
-//       console.log("theres collision");
-//     }
-//   });
-// }
-
-//   hunter.x < canvas.width - 500 ){
-
-//   }
-//   hunter.y > canvas.height + 100 ||
-//   hunter.y < canvas.height - 800
-// ) {
-//   hunter.move = false;
-
-// function moveUp() {
-//   ctx.save();
-//   setInterval(() => {
-//     bullet.y -= 40;
-//   }, 50);
-//   ctx.restore();
-// }
 
 //listeners
+// function theScore() {}
 
 addEventListener("keydown", e => {
   if (bullets.length === 0) {
@@ -383,12 +453,20 @@ addEventListener("keydown", e => {
     // hunter.x = hunter.x.clamp(500, canvas.width - hunter.width);
   }
 });
-// $(document).ready(function (e) {
-//   $(canvas).click(function (e) { //Default mouse Position
-//       alert(e.pageX + ' , ' + e.pageY);
-// //   addEventListener("click", e => {
-/* bullet is to get click cordinates to shoot the zombies */
+addEventListener("keydown", e => {
+  if (e.keyCode === 13) {
+    document.location.reload();
+    clearInterval(interval);
+    interval = 0;
+  }
+});
 document.getElementById("startbutton").addEventListener("click", function() {
   start();
 });
 startMenu();
+
+// console.log(zombiesArray);
+// console.log(bullets);
+console.log(score);
+console.log(zombieKilled);
+// console.log(hunter.health);
