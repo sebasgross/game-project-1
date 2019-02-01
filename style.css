@@ -30,12 +30,13 @@ section > article {
   color: white;
 }
 #story {
-  font-size: 150%;
+  font-size: 130%;
+  text-decoration: underline;
   /* padding-top: px; */
   display: flex;
   justify-content: flex-start;
   line-height: 220%;
-  padding-left: 40px;
+  padding-left: 15px;
 }
 #instruction {
   /* padding-left: 200px; */

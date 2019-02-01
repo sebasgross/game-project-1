@@ -2,6 +2,7 @@ let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 //globals
 let interval;
+let scoreArray = [];
 let chewbacaDied = new Audio();
 chewbacaDied.src = "http://soundbible.com/grab.php?id=307&type=mp3";
 let laser = new Audio();
@@ -143,7 +144,7 @@ class Zombie {
     this.image = new Image();
     this.image.src = images.zombie;
     this.draw = function() {
-      this.y += 1.5;
+      this.y += 1.8;
       if (this.x < board.width / 2) {
         this.x += 0.05;
       } else {
@@ -211,11 +212,12 @@ function update() {
 
   generateZombies();
   drawZombies();
-
+  // zombieOver();
   canMove();
   isTouching();
   hunterTouched();
   drawScore();
+  drawTime();
   // sound();
   //images
   heartDisplay();
@@ -225,15 +227,27 @@ function start() {
   interval = setInterval(update, 50);
   bgmusic.play();
 }
-
+// console.log(scoreArray);
 function gameover() {
   clearInterval(interval);
+  scoreArray.push(score.valueOf());
+  if (frames === 1200) {
+    ctx.fillStyle = "#8B0000";
+    ctx.fillText("TIME LIMIT!, YOU WON", 200, 300);
+    ctx.strokeText("TIME LIMIT! YOU WON", 200, 300);
+  }
+
   bgmusic.pause();
+  gameOverMusic.volume = 1;
   gameOverMusic.play();
   ctx.font = "40px 'Permanent Marker";
-  ctx.fillStyle = "red";
+  ctx.fillStyle = "#8B0000";
   ctx.fillText("GAME OVER", 220, 200);
+  ctx.strokeText("GAME OVER", 220, 200);
   ctx.fillText("Press Enter to restart", 140, 350);
+  ctx.strokeText("Press Enter to restart", 140, 350);
+  ctx.fillText(score, 320, 400, 35, 30);
+  ctx.strokeText(score, 320, 400, 35, 30);
 }
 function startMenu() {
   this.x = 0;
@@ -266,8 +280,6 @@ function heartDisplay() {
   this.image.src = images.hunterBaby;
   this.draw = function() {
     if (hunter.health <= 300 && hunter.health > 200) {
-      loseHealth.play();
-
       ctx.drawImage(
         this.image,
         0,
@@ -279,6 +291,7 @@ function heartDisplay() {
         150,
         this.height
       );
+      loseHealth.play();
     } else if (hunter.health <= 200 && hunter.health > 100) {
       loseHealth.play();
 
@@ -315,7 +328,7 @@ function heartDisplay() {
   this.image.onload = this.draw.bind(this);
 }
 function generateZombies() {
-  if (frames % 40 == 0 && zombiesArray.length < maxZombies) {
+  if (frames % 30 == 0 && zombiesArray.length < maxZombies) {
     let location = Math.floor(Math.random() * 620) + 30;
     let aZombie = new Zombie(location);
     zombiesArray.push(aZombie);
@@ -345,13 +358,7 @@ function drawBullet() {
     laser.play();
   });
 }
-// function sound() {
-//   if (drawBullet()) {
-//     laser.playbackRate = 2.0;
 
-//     laser.play();
-//   }
-// }
 function deleteBullet() {
   bullets.forEach(bullet => {
     if (
@@ -360,6 +367,8 @@ function deleteBullet() {
       bullet.y < canvas.height - 500 ||
       bullet.y > canvas.height + 150
     ) {
+      score -= 1;
+
       bullets.shift(bullet);
     }
   });
@@ -388,9 +397,8 @@ function hunterTouched() {
       hunter.y < leZombie.y + leZombie.height &&
       hunter.y + hunter.height > leZombie.y
     ) {
+      hunter.health -= 2.5;
       loseHealth.play();
-
-      hunter.health -= 2;
     }
   });
 }
@@ -405,6 +413,7 @@ function isTouching() {
       )
         zombiesArray.shift(leZombie);
       zombieKilled.push(leZombie);
+      score += 1;
       chewbacaDied.playbackRate = 2;
       chewbacaDied.play();
     });
@@ -414,6 +423,11 @@ function drawScore() {
   ctx.fillStyle = "yellow";
   ctx.font = "30px Arial ";
   ctx.fillText(score, 25, 40, 15, 15);
+}
+function drawTime() {
+  ctx.font = "30px 'Arial'";
+  ctx.fillText(Math.floor(frames / 20), 500, 40);
+  if (frames === 1200) gameover();
 }
 
 //listeners
@@ -465,6 +479,10 @@ document.getElementById("startbutton").addEventListener("click", function() {
 });
 startMenu();
 
+function writeScore() {
+  let scoretext = document.getElementById("elScore");
+  if (!gameover()) scoretext.textContent(score.valueOf());
+}
 // console.log(zombiesArray);
 // console.log(bullets);
 console.log(score);
